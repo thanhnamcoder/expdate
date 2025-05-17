@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+<h1>Danh sách Item</h1>
+<p>Đây là template tùy chỉnh cho danh sách Item trong admin.</p>
+
+<!-- Gọi lại nội dung mặc định của Django admin -->
+{{ block.super }}
+{% endblock %}

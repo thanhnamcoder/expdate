@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trang chủ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #ffffff;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      z-index: 1030;
+    }
+    .bottom-nav .nav-link {
+      color: #6c757d;
+      font-size: 13px;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+    .bottom-nav .nav-link.active {
+      color: #0d6efd;
+      font-weight: 600;
+    }
+    .bottom-nav .nav-link i {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+    .tab-content {
+      padding-bottom: 80px; /* tránh bị che bởi bottom nav */
+    }
+    .alert {
+      padding: 4px 12px;
+      font-size: 14px;
+    }
+    /* Modal quét barcode */
+    #barcodeModal .modal-dialog {
+      max-width: 400px;
+      margin: 1.75rem auto;
+    }
+    #html5qr-reader {
+      width: 100%;
+      border-radius: 8px;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar trên cùng -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/home/">👤 {{ user.first_name }}</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Hồ sơ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout/">Đăng xuất</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Thanh thông báo -->
+  <div class="notification-box alert alert-info alert-dismissible fade show text-center mb-0 rounded-0 d-none" role="alert">
+    <span id="notification-message"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <!-- Nội dung chính -->
+  <div class="container mt-4 tab-content" id="tabContent">
+    {% include 'profile_modal.html' %}
+
+    <div class="tab-pane fade show active" id="homeTab">
+      <h3 class="mb-3">🏠 Trang chủ</h3>
+      <p>Nội dung trang chủ ở đây.</p>
+
+      <form>
+        <div class="mb-3">
+          <label for="itembarcode" class="form-label">Label 1 (Barcode)</label>
+          <input type="text" class="form-control" id="itembarcode" placeholder="Nhập thông tin hoặc quét barcode" />
+        </div>
+        <div class="mb-3">
+          <label for="itemname" class="form-label">Label 2</label>
+          <input type="text" class="form-control" id="itemname" placeholder="Nhập thông tin..." />
+        </div>
+        <div class="mb-3">
+          <label for="quantity" class="form-label">Label 3</label>
+          <input type="text" class="form-control" id="quantity" placeholder="Nhập thông tin..." />
+        </div>
+        <div class="mb-3">
+          <label for="expdate" class="form-label">Label 4</label>
+          <input type="text" class="form-control" id="expdate" placeholder="Nhập thông tin..." />
+        </div>
+        <button type="button" class="btn btn-secondary me-2" onclick="openBarcodeScanner()">Quét</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+
+    <div class="tab-pane fade" id="dataTab">
+      <h3 class="mb-3">📊 Dữ liệu</h3>
+      <p>Dữ liệu hiển thị tại đây.</p>
+    </div>
+
+    <div class="tab-pane fade" id="productTab">
+      <h3 class="mb-3">🛒 Product</h3>
+      <p>Thông tin sản phẩm ở đây.</p>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="nav justify-content-around bottom-nav">
+    <a class="nav-link active" href="#" onclick="showTab('homeTab', this)">
+      <i class="bi bi-house-door"></i>
+      <span>Trang chủ</span>
+    </a>
+    <a class="nav-link" href="#" onclick="showTab('dataTab', this)">
+      <i class="bi bi-bar-chart-line"></i>
+      <span>Dữ liệu</span>
+    </a>
+    <a class="nav-link" href="#" onclick="showTab('productTab', this)">
+      <i class="bi bi-box-seam"></i>
+      <span>Product</span>
+    </a>
+  </nav>
+
+  <!-- Modal Quét Barcode -->
+  <div class="modal fade" id="barcodeModal" tabindex="-1" aria-labelledby="barcodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="barcodeModalLabel">Quét mã vạch</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeScannerBtn"></button>
+        </div>
+        <div class="modal-body">
+          <div id="html5qr-reader"></div>
+          <p class="mt-2 text-center" id="scanStatus">Đang chờ quét...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thư viện html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <script>
+    function showAlertMessage(message, type = "info", timeout = 5000) {
+    const alertBox = document.getElementById("scan-alert");
+
+    if (!alertBox) {
+        console.error("Không tìm thấy phần tử 'scan-alert' trong DOM.");
+        return;
+    }
+
+    alertBox.className = `alert alert-${type} alert-dismissible fade show text-center mb-0 rounded-0`;
+    alertBox.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+
+    // Tự động ẩn sau timeout ms (nếu cần)
+    if (timeout > 0) {
+        setTimeout(() => {
+            alertBox.classList.remove("show");
+            alertBox.classList.add("d-none");
+        }, timeout);
+    }
+}
+
+    // Quản lý tab bottom nav
+    function showTab(tabId, clickedElement) {
+      document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('show', 'active'));
+      document.getElementById(tabId).classList.add('show', 'active');
+      document.querySelectorAll('.bottom-nav .nav-link').forEach(link => link.classList.remove('active'));
+      clickedElement.classList.add('active');
+    }
+
+let html5QrcodeScanner = null;
+const html5QrCodeId = "html5qr-reader";
+const scanStatus = document.getElementById('scanStatus');
+
+function openBarcodeScanner() {
+  const modal = new bootstrap.Modal(document.getElementById('barcodeModal'));
+  modal.show();
+
+  if (!html5QrcodeScanner) {
+    html5QrcodeScanner = new Html5Qrcode(html5QrCodeId);
+  }
+
+  startScanner();
+}
+
+function startScanner() {
+  scanStatus.textContent = 'Đang chờ quét...';
+
+  const config = {
+    fps: 10,
+    qrbox: 250,
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.ITF,
+      Html5QrcodeSupportedFormats.CODABAR,
+      Html5QrcodeSupportedFormats.DATA_MATRIX,
+      Html5QrcodeSupportedFormats.PDF_417,
+    ]
+  };
+
+  html5QrcodeScanner.start(
+    { facingMode: "environment" },
+    config,
+    qrCodeMessage => {
+      document.getElementById('itembarcode').value = qrCodeMessage;
+
+      // Gọi API để tìm sản phẩm
+      fetch(`/api/get-item/?barcode=${qrCodeMessage}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Lỗi khi gọi API');
+          }
+        })
+        .then(data => {
+          if (data.success && data.data) {
+            document.getElementById('itemname').value = data.data.item_name;
+            updateNotificationBox(data.data.item_name, 'success');
+          } else {
+            console.warn('Không tìm thấy sản phẩm:', data.error || 'Không rõ lỗi');
+            document.getElementById('itemname').value = '';
+          }
+        })
+        .catch(error => {
+          console.error('Lỗi khi gọi API:', error);
+          document.getElementById('itemname').value = '';
+        });
+
+      // Dừng quét và đóng modal ngay lập tức
+      html5QrcodeScanner.stop()
+        .then(() => {
+          const modalEl = document.getElementById('barcodeModal');
+          const modalInstance = bootstrap.Modal.getInstance(modalEl);
+          modalInstance.hide();
+        })
+        .catch(err => {
+          console.error('Lỗi khi dừng scanner:', err);
+        });
+    },
+    errorMessage => {
+      console.warn('Lỗi quét mã vạch:', errorMessage); // Log lỗi quét mã vạch
+    }
+  ).catch(err => {
+    scanStatus.textContent = 'Không thể mở camera: ' + err;
+    console.error('Lỗi khi khởi tạo scanner:', err);
+  });
+}
+
+// Khi modal đóng, dừng camera để giải phóng tài nguyên
+document.getElementById('barcodeModal').addEventListener('hidden.bs.modal', () => {
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.stop()
+      .then(() => html5QrcodeScanner.clear())
+      .catch(err => {
+        // Đôi khi stop hoặc clear lỗi khi chưa start, có thể bỏ qua
+      });
+  }
+});
+
+  </script>
+
+  <script>
+  document.getElementById('itembarcode').addEventListener('input', async function () {
+  const barcode = this.value.trim();
+  if (barcode) {
+    try {
+      const response = await fetch(`/api/get-item/?barcode=${barcode}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          document.getElementById('itemname').value = data.data.item_name;
+        } else {
+          document.getElementById('itemname').value = '';
+        }
+      } else {
+        document.getElementById('itemname').value = '';
+      }
+    } catch (error) {
+      console.error('Lỗi kết nối:', error);
+      document.getElementById('itemname').value = '';
+    }
+  } else {
+    document.getElementById('itemname').value = '';
+  }
+});
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+function updateNotificationBox(message, type = "info") {
+    const notificationBox = document.querySelector(".notification-box");
+    const notificationMessage = document.getElementById("notification-message");
+
+    if (!notificationBox || !notificationMessage) {
+        console.error("Không tìm thấy phần tử 'notification-box' hoặc 'notification-message' trong DOM.");
+        return;
+    }
+
+    // Set alert color to red for error type
+    const alertType = type === "error" ? "danger" : type;
+
+    notificationBox.className = `notification-box alert alert-${alertType} alert-dismissible fade show text-center mb-0 rounded-0`;
+    notificationMessage.textContent = message;
+    notificationBox.classList.remove("d-none");
+}
+</script>
+</body>
+</html>
