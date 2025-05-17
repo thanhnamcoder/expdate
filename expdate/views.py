@@ -97,9 +97,7 @@ def login_view(request):
     return render(request, 'login.html', {'error_message': error_message})
 
 def register_view(request):
-    error_message = None
     if request.method == 'POST':
-<<<<<<< HEAD
         if request.content_type == 'application/json':
             import json
             data = json.loads(request.body.decode())
@@ -130,30 +128,6 @@ def register_view(request):
         user.save()
         return JsonResponse({'success': True})
     return render(request, 'register.html')
-=======
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        name = request.POST.get('name')
-        group_label = request.POST.get('group', '').strip().lower()
-        email = request.POST.get('email', '').strip()
-        try:
-            if not username or not password or not name:
-                error_message = 'Vui lòng nhập đầy đủ thông tin.'
-            elif User.objects.filter(username=username).exists():
-                error_message = 'Tên đăng nhập đã tồn tại.'
-            else:
-                user = User.objects.create_user(username=username, password=password, first_name=name, email=email)
-                if group_label:
-                    group, created = Group.objects.get_or_create(name=group_label)
-                    user.groups.add(group)
-                user.save()
-                return redirect('login')
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())  # Log to console (Render logs)
-            error_message = f'Đã xảy ra lỗi: {str(e)}'
-    return render(request, 'register.html', {'error_message': error_message})
->>>>>>> 4e396ccd014fadc104ee9e8762bd052137ddfa1a
 
 @login_required
 def home_view(request):

@@ -30,15 +30,11 @@ SECRET_KEY = 'django-insecure-h#h5=@w&3(i9#z^b2a=wn02gy^8%ygvm01y!f#tslhts@u_fx8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD
 ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
-=======
-ALLOWED_HOSTS = ['thanhnam-expdate.onrender.com']
->>>>>>> 4e396ccd014fadc104ee9e8762bd052137ddfa1a
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -84,17 +80,10 @@ WSGI_APPLICATION = 'expdate.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-<<<<<<< HEAD
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-=======
-    'default': dj_database_url.config(
-        default='mysql://vvesnzbk_product_data:Nguyen2004nam@@103.97.126.29:3306/vvesnzbk_product_data',
-        conn_max_age=600
-    )
->>>>>>> 4e396ccd014fadc104ee9e8762bd052137ddfa1a
 }
 
 
