@@ -42,6 +42,7 @@ def add_users_to_group_view(request, queryset):
 # Hiển thị nhóm của user trong admin
 class SingleGroupInlineForm(forms.ModelForm):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=False, label='Nhóm')
+
     class Meta:
         model = UserProfile
         fields = ('is_sm',)
@@ -55,11 +56,14 @@ class SingleGroupInlineForm(forms.ModelForm):
     def save(self, commit=True):
         userprofile = super().save(commit=False)
         group = self.cleaned_data.get('group')
+        user = userprofile.user
         if group:
             # Xóa hết group cũ, chỉ giữ group mới
-            user = userprofile.user
             user.groups.clear()
             user.groups.add(group)
+        else:
+            # Nếu group là None, xóa tất cả các nhóm
+            user.groups.clear()
         if commit:
             userprofile.save()
         return userprofile
@@ -114,6 +118,8 @@ class CustomUserAdmin(BaseUserAdmin):
             if form.is_valid():
                 group = form.cleaned_data['group']
                 for user in queryset:
+                    # Clear existing groups and add the new group
+                    user.groups.clear()
                     user.groups.add(group)
                 self.message_user(request, f"Đã thêm {queryset.count()} người dùng vào nhóm '{group.name}'", messages.SUCCESS)
                 return redirect(request.get_full_path())

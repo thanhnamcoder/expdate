@@ -351,6 +351,40 @@ def product_data_api(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+@method_decorator(csrf_exempt, name='dispatch')
+class GroupItemsAPI(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+        try:
+            # Fetch items for the user's group or all user data if no group
+            user_groups = request.user.groups.all()
+            if user_groups:
+                group = user_groups[0]
+                group_users = group.user_set.all()
+                items = Item.objects.filter(user__in=group_users)
+            else:
+                items = Item.objects.filter(user=request.user)
+
+            data = [
+                {
+                    'id': item.id,
+                    'itembarcode': item.itembarcode,
+                    'itemname': item.itemname,
+                    'quantity': item.quantity,
+                    'expdate': item.expdate.strftime('%Y-%m-%d'),
+                    'user_id': item.user.id,
+                    'username': item.user.first_name or item.user.username,
+                    'can_edit': is_group_manager(request.user, item.user),
+                    'can_delete': is_group_manager(request.user, item.user),
+                } for item in items
+            ]
+
+            return JsonResponse({'items': data})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
 # In urls.py, add:
 # from expdate.api import ItemListAPI, ItemDetailAPI, ExpiringSoonAPI
 # urlpatterns += [

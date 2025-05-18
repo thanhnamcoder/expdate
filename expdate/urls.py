@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 from . import views
 from .api import ItemListAPI, ItemDetailAPI, get_item, ExpiringSoonAPI, product_data_api
 from .views import api_login
+from expdate.api import GroupItemsAPI
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,6 +43,7 @@ urlpatterns = [
     path('api/items/expiring_soon/', ExpiringSoonAPI.as_view(), name='api_expiring_soon'),
     path('api/product-data/', product_data_api, name='api_product_data'),
     path('api/login/', api_login, name='api_login'),
+    path('api/group-items/', GroupItemsAPI.as_view(), name='api_group_items'),
 
     path('printmode/', views.printmode_view, name='printmode'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

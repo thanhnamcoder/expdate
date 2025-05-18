@@ -1,0 +1,14 @@
+
+{% extends 'admin/base_site.html' %}
+{% block content %}
+  <h1>{{ title }}</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="action" value="add_to_group_action">
+    {% for user in users %}
+      <input type="hidden" name="_selected_action" value="{{ user.pk }}">
+    {% endfor %}
+    <button type="submit" name="apply" class="default">Xác nhận thêm vào nhóm</button>
+    <a href=".." class="button">Hủy</a>
+  </form>
+{% endblock %}

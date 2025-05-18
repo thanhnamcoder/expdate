@@ -4,6 +4,17 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from .api import is_group_manager
+from datetime import datetime
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from .models import Item
+from django.contrib.auth import logout
+from django.views.decorators.http import require_POST
+import json
+import calendar
 
 @login_required
 @csrf_exempt
@@ -51,7 +62,7 @@ def edit_item_view(request, item_id):
         expdate = request.POST.get('expdate')
         if itembarcode and itemname and quantity and expdate:
             try:
-                expdate_obj = datetime.datetime.strptime(expdate, "%Y-%m-%d").date()
+                expdate_obj = datetime.strptime(expdate, "%Y-%m-%d").date()
                 item.itembarcode = itembarcode
                 item.itemname = itemname
                 item.quantity = quantity
@@ -71,15 +82,10 @@ def edit_item_view(request, item_id):
             return HttpResponse('Vui lòng nhập đầy đủ thông tin.', status=400)
     # GET: Hiển thị form sửa
     return render(request, 'edit_item.html', {'item': item})
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from .models import Item
-import datetime
+
 def guest_view(request):
     return render(request, 'guest.html')
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -99,7 +105,6 @@ def login_view(request):
 def register_view(request):
     if request.method == 'POST':
         if request.content_type == 'application/json':
-            import json
             data = json.loads(request.body.decode())
             username = data.get('username', '').strip()
             password = data.get('password', '').strip()
@@ -142,14 +147,13 @@ def home_view(request):
         if itembarcode and itemname and quantity and (expdate or (mfgdate and months)):
             try:
                 if expdate:
-                    expdate_obj = datetime.datetime.strptime(expdate, "%Y-%m-%d").date()
+                    expdate_obj = datetime.strptime(expdate, "%Y-%m-%d").date()
                 else:
-                    mfgdate_obj = datetime.datetime.strptime(mfgdate, "%Y-%m-%d").date()
+                    mfgdate_obj = datetime.strptime(mfgdate, "%Y-%m-%d").date()
                     months_int = int(months)
                     year = mfgdate_obj.year + (mfgdate_obj.month + months_int - 1) // 12
                     month = (mfgdate_obj.month + months_int - 1) % 12 + 1
                     day = mfgdate_obj.day
-                    import calendar
                     last_day = calendar.monthrange(year, month)[1]
                     if day > last_day:
                         day = last_day
@@ -179,9 +183,23 @@ def home_view(request):
         else:
             items = Item.objects.filter(user=request.user).order_by('-created_at')
 
-    return render(request, 'home.html', {'items': items, 'message': message, 'show_group': request.user.is_superuser})
+    today = datetime.today()
+    days = list(range(1, 32))
+    months = list(range(1, 13))
+    years = list(range(today.year, today.year + 11))
 
-from django.contrib.auth import logout
+    return render(request, 'home.html', {
+        'items': items,
+        'message': message,
+        'show_group': request.user.is_superuser,
+        'days': days,
+        'months': months,
+        'years': years,
+        'default_day': today.day,
+        'default_month': today.month,
+        'default_year': today.year
+    })
+
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -189,8 +207,6 @@ def logout_view(request):
 
 def printmode_view(request):
     return render(request, 'printmode.html')
-
-from django.views.decorators.http import require_POST
 
 @csrf_exempt
 @require_POST

@@ -80,11 +80,15 @@
     </div>
   </nav>
 
-  <!-- Thanh thông báo -->
-  <div class="notification-box alert alert-info alert-dismissible fade show text-center mb-0 rounded-0 d-none" role="alert">
-    <span id="notification-message"></span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
+<!-- Thanh thông báo -->
+<div id="scan-alert" class="alert alert-info alert-dismissible fade d-none text-center mb-0 rounded-0" role="alert">
+  <!-- Nội dung thông báo sẽ được thêm vào đây -->
+</div>
+
+<!-- Thông báo -->
+<div id="notification-box" class="alert alert-info d-none" role="alert">
+  <span id="notification-message">Thông báo sẽ hiển thị ở đây.</span>
+</div>
 
   <!-- Nội dung chính -->
   <div class="container mt-4 tab-content" id="tabContent">
@@ -92,24 +96,65 @@
 
     <div class="tab-pane fade show active" id="homeTab">
       <h3 class="mb-3">🏠 Trang chủ</h3>
-      <p>Nội dung trang chủ ở đây.</p>
 
-      <form>
+
+      <form action="/api/items/" method="POST">
         <div class="mb-3">
-          <label for="itembarcode" class="form-label">Label 1 (Barcode)</label>
-          <input type="text" class="form-control" id="itembarcode" placeholder="Nhập thông tin hoặc quét barcode" />
+          <label for="itembarcode" class="form-label">Barcode</label>
+          <input type="text" class="form-control" id="itembarcode" name="itembarcode" placeholder="Nhập thông tin hoặc quét barcode" />
         </div>
         <div class="mb-3">
-          <label for="itemname" class="form-label">Label 2</label>
-          <input type="text" class="form-control" id="itemname" placeholder="Nhập thông tin..." />
+          <label for="itemname" class="form-label">Tên sản phẩm</label>
+          <input type="text" class="form-control" id="itemname" name="itemname" placeholder="Nhập thông tin..." />
         </div>
-        <div class="mb-3">
-          <label for="quantity" class="form-label">Label 3</label>
-          <input type="text" class="form-control" id="quantity" placeholder="Nhập thông tin..." />
+        <div class="mb-3 d-flex align-items-center">
+          <div class="me-2">
+            <label for="quantity" class="form-label">Số lượng</label>
+            <input type="text" class="form-control" id="quantity" name="quantity" placeholder="Nhập số lượng" style="width: 80px;" />
+          </div>
+          <div class="me-2" style="width: 70px;">
+            <label for="day" class="form-label">Ngày</label>
+            <select class="form-select" id="day" name="day">
+              <option value="">Chọn ngày</option>
+              <!-- Options for days 1-31 -->
+              {% for day in days %}
+              <option value="{{ day }}" {% if day == 1 %}selected{% endif %}>{{ day }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="me-2" style="width: 70px;">
+            <label for="month" class="form-label">Tháng</label>
+            <select class="form-select" id="month" name="month">
+              {% for month in months %}
+              <option value="{{ month }}" {% if month == 1 %}selected{% endif %}>{{ month }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="me-2" style="width: 90px;">
+            <label for="year" class="form-label">Năm</label>
+            <select class="form-select" id="year" name="year">
+              {% for year in years %}
+              <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="expdate" class="form-label">Label 4</label>
-          <input type="text" class="form-control" id="expdate" placeholder="Nhập thông tin..." />
+        <div class="mb-3 d-flex align-items-center">
+          <div class="me-2" style="width: 100px;">
+            <label for="monthsToAdd" class="form-label align-middle">Số tháng</label>
+            <input type="number" class="form-control" id="monthsToAdd" name="monthsToAdd" placeholder="Nhập số tháng" />
+          </div>
+          <div class="me-2" style="width: 100px;">
+            <label for="addType" class="form-label align-middle">Định dạng</label>
+            <select class="form-select" id="addType" name="addType">
+              <option value="month">Tháng</option>
+              <option value="day">Ngày</option>
+            </select>
+          </div>
+          <div class="me-2" style="width: 130px;">
+            <label for="hsd" class="form-label align-middle">HSD</label>
+            <input type="text" class="form-control" id="hsd" name="hsd" placeholder="Hạn sử dụng" readonly />
+          </div>
         </div>
         <button type="button" class="btn btn-secondary me-2" onclick="openBarcodeScanner()">Quét</button>
         <button type="submit" class="btn btn-primary">Submit</button>
@@ -117,8 +162,7 @@
     </div>
 
     <div class="tab-pane fade" id="dataTab">
-      <h3 class="mb-3">📊 Dữ liệu</h3>
-      <p>Dữ liệu hiển thị tại đây.</p>
+      {% include 'data_tab.html' %}
     </div>
 
     <div class="tab-pane fade" id="productTab">
@@ -161,191 +205,8 @@
 
   <!-- Thư viện html5-qrcode -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-  <script>
-    function showAlertMessage(message, type = "info", timeout = 5000) {
-    const alertBox = document.getElementById("scan-alert");
-
-    if (!alertBox) {
-        console.error("Không tìm thấy phần tử 'scan-alert' trong DOM.");
-        return;
-    }
-
-    alertBox.className = `alert alert-${type} alert-dismissible fade show text-center mb-0 rounded-0`;
-    alertBox.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-
-    // Tự động ẩn sau timeout ms (nếu cần)
-    if (timeout > 0) {
-        setTimeout(() => {
-            alertBox.classList.remove("show");
-            alertBox.classList.add("d-none");
-        }, timeout);
-    }
-}
-
-    // Quản lý tab bottom nav
-    function showTab(tabId, clickedElement) {
-      document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('show', 'active'));
-      document.getElementById(tabId).classList.add('show', 'active');
-      document.querySelectorAll('.bottom-nav .nav-link').forEach(link => link.classList.remove('active'));
-      clickedElement.classList.add('active');
-    }
-
-let html5QrcodeScanner = null;
-const html5QrCodeId = "html5qr-reader";
-const scanStatus = document.getElementById('scanStatus');
-
-function openBarcodeScanner() {
-  const modal = new bootstrap.Modal(document.getElementById('barcodeModal'));
-  modal.show();
-
-  if (!html5QrcodeScanner) {
-    html5QrcodeScanner = new Html5Qrcode(html5QrCodeId);
-  }
-
-  startScanner();
-}
-
-function startScanner() {
-  scanStatus.textContent = 'Đang chờ quét...';
-
-  const config = {
-    fps: 10,
-    qrbox: 250,
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.CODE_39,
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.UPC_A,
-      Html5QrcodeSupportedFormats.UPC_E,
-      Html5QrcodeSupportedFormats.QR_CODE,
-      Html5QrcodeSupportedFormats.ITF,
-      Html5QrcodeSupportedFormats.CODABAR,
-      Html5QrcodeSupportedFormats.DATA_MATRIX,
-      Html5QrcodeSupportedFormats.PDF_417,
-    ]
-  };
-
-  html5QrcodeScanner.start(
-    { facingMode: "environment" },
-    config,
-    qrCodeMessage => {
-      document.getElementById('itembarcode').value = qrCodeMessage;
-
-      // Gọi API để tìm sản phẩm
-      fetch(`/api/get-item/?barcode=${qrCodeMessage}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Lỗi khi gọi API');
-          }
-        })
-        .then(data => {
-          if (data.success && data.data) {
-            document.getElementById('itemname').value = data.data.item_name;
-            updateNotificationBox(data.data.item_name, 'success');
-          } else {
-            console.warn('Không tìm thấy sản phẩm:', data.error || 'Không rõ lỗi');
-            document.getElementById('itemname').value = '';
-          }
-        })
-        .catch(error => {
-          console.error('Lỗi khi gọi API:', error);
-          document.getElementById('itemname').value = '';
-        });
-
-      // Dừng quét và đóng modal ngay lập tức
-      html5QrcodeScanner.stop()
-        .then(() => {
-          const modalEl = document.getElementById('barcodeModal');
-          const modalInstance = bootstrap.Modal.getInstance(modalEl);
-          modalInstance.hide();
-        })
-        .catch(err => {
-          console.error('Lỗi khi dừng scanner:', err);
-        });
-    },
-    errorMessage => {
-      console.warn('Lỗi quét mã vạch:', errorMessage); // Log lỗi quét mã vạch
-    }
-  ).catch(err => {
-    scanStatus.textContent = 'Không thể mở camera: ' + err;
-    console.error('Lỗi khi khởi tạo scanner:', err);
-  });
-}
-
-// Khi modal đóng, dừng camera để giải phóng tài nguyên
-document.getElementById('barcodeModal').addEventListener('hidden.bs.modal', () => {
-  if (html5QrcodeScanner) {
-    html5QrcodeScanner.stop()
-      .then(() => html5QrcodeScanner.clear())
-      .catch(err => {
-        // Đôi khi stop hoặc clear lỗi khi chưa start, có thể bỏ qua
-      });
-  }
-});
-
-  </script>
-
-  <script>
-  document.getElementById('itembarcode').addEventListener('input', async function () {
-  const barcode = this.value.trim();
-  if (barcode) {
-    try {
-      const response = await fetch(`/api/get-item/?barcode=${barcode}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          document.getElementById('itemname').value = data.data.item_name;
-        } else {
-          document.getElementById('itemname').value = '';
-        }
-      } else {
-        document.getElementById('itemname').value = '';
-      }
-    } catch (error) {
-      console.error('Lỗi kết nối:', error);
-      document.getElementById('itemname').value = '';
-    }
-  } else {
-    document.getElementById('itemname').value = '';
-  }
-});
-</script>
-
+  <script src="/static/js/home.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-function updateNotificationBox(message, type = "info") {
-    const notificationBox = document.querySelector(".notification-box");
-    const notificationMessage = document.getElementById("notification-message");
-
-    if (!notificationBox || !notificationMessage) {
-        console.error("Không tìm thấy phần tử 'notification-box' hoặc 'notification-message' trong DOM.");
-        return;
-    }
-
-    // Set alert color to red for error type
-    const alertType = type === "error" ? "danger" : type;
-
-    notificationBox.className = `notification-box alert alert-${alertType} alert-dismissible fade show text-center mb-0 rounded-0`;
-    notificationMessage.textContent = message;
-    notificationBox.classList.remove("d-none");
-}
-</script>
+  
 </body>
 </html>

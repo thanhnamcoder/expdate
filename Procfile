@@ -1,1 +1,1 @@
-web: gunicorn expdate.wsgi:application
+web: gunicorn expdate.wsgi
